@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AlertTriangle, TrendingDown, TrendingUp, ChevronDown, ChevronUp, Target, Brain, Users, DollarSign, Activity, Layers, FileText, BarChart2, AlertCircle, CheckCircle, Sparkles, HelpCircle, BookOpen, Lightbulb, MessageCircle, Send, Loader2, Filter, Zap, Shield, Calendar, Info, X, Upload, RefreshCw } from 'lucide-react';
+import { AlertTriangle, TrendingDown, TrendingUp, ChevronDown, ChevronUp, Target, Brain, Users, DollarSign, Activity, Layers, FileText, BarChart2, AlertCircle, CheckCircle, Sparkles, HelpCircle, BookOpen, Lightbulb, Filter, Zap, Shield, Calendar, Info, X, Upload, RefreshCw } from 'lucide-react';
 
 const SNOWFLAKE_DATA = [
   { period: 'Q4 FY22', nrr: 178, customers1M: 184, productRev: 360.1, fcf: 172.6 },
@@ -198,45 +198,6 @@ const FileUploadPanel = ({ isOpen, onClose, onDataUpdate }) => {
 // COMPONENTS
 // ============================================
 
-const SimpleMarkdown = ({ text }) => {
-  if (!text) return null;
-  return <div className="space-y-1">{text.split('\n').map((l, i) => {
-    const t = l.trim();
-    if (!t) return null;
-    if (t.startsWith('## ')) return <h3 key={i} className="font-semibold text-cyan-400 mt-2">{t.slice(3)}</h3>;
-    if (t.startsWith('- ')) return <div key={i} className="flex gap-2 ml-2"><span className="text-cyan-400">•</span><span dangerouslySetInnerHTML={{ __html: t.slice(2).replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>') }} /></div>;
-    return <p key={i} dangerouslySetInnerHTML={{ __html: t.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>') }} />;
-  })}</div>;
-};
-
-const AIChatPanel = ({ isOpen, onClose, ctx }) => {
-  const [msgs, setMsgs] = useState([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => { if (ref.current) ref.current.scrollTop = ref.current.scrollHeight; }, [msgs]);
-  useEffect(() => { if (isOpen && ctx) setMsgs([{ role: 'assistant', content: `Ready for **${ctx.category}**.\n- Explain simpler\n- Handle pushback\n- More data` }]); }, [isOpen, ctx?.id]);
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const m = input.trim(); setInput(''); setMsgs(p => [...p, { role: 'user', content: m }]); setLoading(true);
-    try {
-      const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500, system: `IR advisor. Q: ${ctx?.question}. A: ${ctx?.response}. Concise, ## headers, - bullets.`, messages: [{ role: 'user', content: m }] }) });
-      const d = await r.json(); setMsgs(p => [...p, { role: 'assistant', content: d.content?.[0]?.text || "Error" }]);
-    } catch { setMsgs(p => [...p, { role: 'assistant', content: "## Tips\n- NRR = loyalty score\n- Pivot to dollar growth" }]); }
-    finally { setLoading(false); }
-  };
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.85)' }} onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl flex flex-col" style={{ height: '65vh' }} onClick={e => e.stopPropagation()}>
-        <div className="p-4 border-b border-slate-700 flex items-center justify-between"><div className="flex items-center gap-3"><div className="w-9 h-9 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center"><Brain size={18} className="text-white" /></div><span className="font-semibold text-white">AI Coach</span></div><button onClick={onClose} className="text-slate-400 hover:text-white text-xl">×</button></div>
-        <div ref={ref} className="flex-1 p-4 space-y-3 overflow-y-auto">{msgs.map((m, i) => <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[85%] rounded-2xl px-4 py-2 ${m.role === 'user' ? 'bg-cyan-500 text-white' : 'bg-slate-800 text-slate-200'}`}>{m.role === 'user' ? <p className="text-sm">{m.content}</p> : <div className="text-sm"><SimpleMarkdown text={m.content} /></div>}</div></div>)}{loading && <div className="flex justify-start"><div className="bg-slate-800 rounded-2xl px-4 py-2 flex items-center gap-2"><Loader2 size={14} className="animate-spin text-cyan-400" /><span className="text-xs text-slate-400">Thinking...</span></div></div>}</div>
-        <div className="p-3 border-t border-slate-700"><div className="flex gap-2"><input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder="Ask..." className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500" /><button onClick={send} disabled={loading} className="px-3 py-2 bg-cyan-500 text-white rounded-xl"><Send size={16} /></button></div></div>
-      </div>
-    </div>
-  );
-};
-
 const ExecutiveSummary = () => (
   <div className="mb-6 bg-gradient-to-r from-slate-800/80 to-slate-800/40 border border-slate-700 rounded-xl p-5">
     <div className="flex items-center gap-2 mb-4"><Zap size={18} className="text-amber-400" /><h2 className="text-base font-bold text-white">Executive Summary</h2><span className="text-xs text-slate-500 ml-2">TL;DR for leadership</span></div>
@@ -306,12 +267,13 @@ const WinRateChart = ({ data, onHelpClick }) => (
 const SeverityBadge = ({ s }) => {
   const c = { critical: 'bg-red-500/20 text-red-300 border-red-500/30', high: 'bg-amber-500/20 text-amber-300 border-amber-500/30', medium: 'bg-blue-500/20 text-blue-300 border-blue-500/30', low: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' }[s];
   const ic = { critical: <AlertTriangle size={10} />, high: <AlertCircle size={10} />, medium: <Target size={10} />, low: <CheckCircle size={10} /> };
-  return <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border ${c}`}>{ic[s]}{s.toUpperCase()}</span>;
+  const labels = { critical: 'CRITICAL', high: 'HIGH PRIORITY', medium: 'MED PRIORITY', low: 'LOW PRIORITY' };
+  return <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border ${c}`}>{ic[s]}{labels[s]}</span>;
 };
 
 const DiffBadge = ({ d }) => {
-  const c = { Easy: 'bg-emerald-500/20 text-emerald-300', Medium: 'bg-amber-500/20 text-amber-300', Hard: 'bg-red-500/20 text-red-300' }[d];
-  return <span className={`px-1.5 py-0.5 rounded text-xs ${c}`}>{d}</span>;
+  const c = { Easy: 'bg-emerald-900/30 text-emerald-400 border border-emerald-700/50', Medium: 'bg-amber-900/30 text-amber-400 border border-amber-700/50', Hard: 'bg-red-900/30 text-red-400 border border-red-700/50' }[d];
+  return <span className={`px-1.5 py-0.5 rounded text-xs ${c}`}>{d} Question</span>;
 };
 
 const MetricCard = ({ label, value, change, trend, icon: Icon }) => (
@@ -324,7 +286,7 @@ const MetricCard = ({ label, value, change, trend, icon: Icon }) => (
 
 const SignalBar = ({ score }) => <div className="w-full bg-slate-700 rounded-full h-1"><div className="h-1 rounded-full" style={{ width: `${score}%`, backgroundColor: score >= 85 ? '#ef4444' : score >= 70 ? '#f59e0b' : '#10b981' }} /></div>;
 
-const QuestionCard = ({ q, expanded, onToggle, onAI, onConfidenceHelp, onRefresh, isRefreshing }) => {
+const QuestionCard = ({ q, expanded, onToggle, onConfidenceHelp }) => {
   const avg = Math.round(q.signals.reduce((a, s) => a + s.score, 0) / q.signals.length);
   return (
     <div className={`rounded-lg border overflow-hidden ${q.severity === 'critical' ? 'border-red-500/40 bg-red-500/5' : q.severity === 'high' ? 'border-amber-500/40 bg-amber-500/5' : q.severity === 'medium' ? 'border-blue-500/40 bg-blue-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
@@ -378,20 +340,7 @@ const QuestionCard = ({ q, expanded, onToggle, onAI, onConfidenceHelp, onRefresh
               </div>
             </div>
             <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <h4 className="text-xs text-emerald-400 flex items-center gap-1"><Sparkles size={10} />Suggested Response</h4>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={e => { e.stopPropagation(); onRefresh(q.id); }} 
-                    disabled={isRefreshing}
-                    className="flex items-center gap-1 px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded-lg hover:bg-slate-600 disabled:opacity-50"
-                    title="Generate alternative question"
-                  >
-                    <RefreshCw size={10} className={isRefreshing ? 'animate-spin' : ''} />Rephrase
-                  </button>
-                  <button onClick={e => { e.stopPropagation(); onAI(q); }} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs rounded-lg shadow-lg shadow-cyan-500/20"><MessageCircle size={10} />Ask AI</button>
-                </div>
-              </div>
+              <h4 className="text-xs text-emerald-400 flex items-center gap-1 mb-1.5"><Sparkles size={10} />Suggested Response</h4>
               <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-lg p-2.5">
                 <p className="text-sm text-cyan-50">{q.response}</p>
               </div>
@@ -442,9 +391,6 @@ export default function EarningsWarRoom() {
   const [diff, setDiff] = useState('All');
   const [showMethod, setShowMethod] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
-  const [chat, setChat] = useState(null);
-  const [refreshingId, setRefreshingId] = useState(null);
-  const [questionVariants, setQuestionVariants] = useState({});
   
   // Explanation modals
   const [showNRRHelp, setShowNRRHelp] = useState(false);
@@ -452,50 +398,14 @@ export default function EarningsWarRoom() {
   const [showConfidenceHelp, setShowConfidenceHelp] = useState(false);
   const [showResearchHelp, setShowResearchHelp] = useState(false);
   
-  const baseQuestions = generateQuestions(SNOWFLAKE_DATA);
-  
-  // Apply any question variants (rephrased versions)
-  const questions = baseQuestions.map(q => questionVariants[q.id] ? { ...q, question: questionVariants[q.id] } : q);
+  const questions = generateQuestions(SNOWFLAKE_DATA);
   const filtered = questions.filter(q => (topic === 'All' || q.topic === topic) && (diff === 'All' || q.difficulty === diff));
   const c = SNOWFLAKE_DATA[SNOWFLAKE_DATA.length - 1], p = SNOWFLAKE_DATA.find(d => d.period.includes('FY25')) || SNOWFLAKE_DATA[SNOWFLAKE_DATA.length - 2];
-  
-  // Rephrase a question using AI
-  const handleRefresh = async (id) => {
-    setRefreshingId(id);
-    const q = baseQuestions.find(q => q.id === id);
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 200,
-          system: 'Rephrase this earnings call analyst question to be more pointed/specific while keeping the same meaning. Return ONLY the rephrased question, nothing else.',
-          messages: [{ role: 'user', content: q.question }]
-        })
-      });
-      const data = await response.json();
-      const newQuestion = data.content?.[0]?.text?.trim();
-      if (newQuestion) {
-        setQuestionVariants(prev => ({ ...prev, [id]: newQuestion }));
-      }
-    } catch (e) {
-      // Fallback: add slight variation
-      const variations = [
-        q.question.replace('What', 'How do you explain'),
-        q.question.replace('?', ' going forward?'),
-        q.question + ' Walk us through your thinking.',
-      ];
-      setQuestionVariants(prev => ({ ...prev, [id]: variations[Math.floor(Math.random() * variations.length)] }));
-    }
-    setRefreshingId(null);
-  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <MethodologyPanel isOpen={showMethod} onClose={() => setShowMethod(false)} />
       <FileUploadPanel isOpen={showUpload} onClose={() => setShowUpload(false)} />
-      <AIChatPanel isOpen={!!chat} onClose={() => setChat(null)} ctx={chat} />
       
       {/* NRR Explanation Modal */}
       <ExplanationModal isOpen={showNRRHelp} onClose={() => setShowNRRHelp(false)} title="What is NRR?">
@@ -628,7 +538,7 @@ export default function EarningsWarRoom() {
           )}
         </div>
         
-        {tab === 'questions' && <div className="space-y-2">{filtered.map(q => <QuestionCard key={q.id} q={q} expanded={expanded === q.id} onToggle={() => setExpanded(expanded === q.id ? null : q.id)} onAI={setChat} onConfidenceHelp={() => setShowConfidenceHelp(true)} onRefresh={handleRefresh} isRefreshing={refreshingId === q.id} />)}</div>}
+        {tab === 'questions' && <div className="space-y-2">{filtered.map(q => <QuestionCard key={q.id} q={q} expanded={expanded === q.id} onToggle={() => setExpanded(expanded === q.id ? null : q.id)} onConfidenceHelp={() => setShowConfidenceHelp(true)} />)}</div>}
         
         {tab === 'competitive' && (
           <div className="space-y-4">
